@@ -2,6 +2,8 @@
 
 import { Command } from "commander";
 import { createRequire } from "node:module";
+import { registerCheckCommand } from "./commands/check.js";
+import { registerDiffCommand } from "./commands/diff.js";
 import { registerListCommand } from "./commands/list.js";
 import { registerReplayCommand } from "./commands/replay.js";
 import { registerRunCommand } from "./commands/run.js";
@@ -19,5 +21,7 @@ program
 registerRunCommand(program);
 registerReplayCommand(program);
 registerListCommand(program);
+registerDiffCommand(program);
+registerCheckCommand(program);
 
 program.parse(process.argv);
