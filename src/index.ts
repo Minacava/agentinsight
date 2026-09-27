@@ -11,6 +11,7 @@ export type {
   TraceEvent,
   TraceEventType,
   TraceFile,
+  TraceMeta,
   TraceSummary,
 } from "./types/trace.js";
 export { buildSummary, mergeTokenUsage } from "./types/trace.js";

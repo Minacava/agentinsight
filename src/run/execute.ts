@@ -7,7 +7,7 @@ import { saveTrace } from "../persist/trace-store.js";
 import { hasFocusFilters, selectFocusedEvents, type FocusOptions } from "../render/focus.js";
 import { printEvent } from "../render/formatter.js";
 import { printCompactEvents, printExecutiveSummary } from "../render/views.js";
-import { buildSummary, type TraceFile } from "../types/trace.js";
+import { buildSummary, type TraceFile, type TraceMeta } from "../types/trace.js";
 import { loadEntrypoint } from "./load-entrypoint.js";
 
 function adapterFor(runtime: ReturnType<typeof detectRuntime>): AgentAdapter {
@@ -33,6 +33,7 @@ export interface ExecuteOptions {
   compact?: boolean;
   verbose?: boolean;
   focus?: FocusOptions;
+  meta?: TraceMeta;
 }
 
 export interface ExecuteResult {
@@ -78,6 +79,7 @@ export async function executeEntrypoint(
     endedAt: endedAt.toISOString(),
     events: result.events,
     summary,
+    ...(options.meta && Object.keys(options.meta).length > 0 ? { meta: options.meta } : {}),
   };
 
   let tracePath: string | undefined;

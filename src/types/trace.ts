@@ -35,6 +35,13 @@ export interface TraceSummary {
   tokens?: TokenUsage;
 }
 
+export interface TraceMeta {
+  tags?: string[];
+  env?: string;
+  sessionId?: string;
+  agent?: string;
+}
+
 export interface TraceFile {
   version: 1;
   runtime: AgentRuntime;
@@ -43,6 +50,7 @@ export interface TraceFile {
   endedAt: string;
   events: TraceEvent[];
   summary: TraceSummary;
+  meta?: TraceMeta;
 }
 
 export function emptyTokenUsage(): TokenUsage {

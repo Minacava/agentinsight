@@ -1,6 +1,21 @@
 import type { Command } from "commander";
 import { addFocusOptions, focusFromOpts } from "../cli/focus-options.js";
 import { executeEntrypoint } from "../run/execute.js";
+import type { TraceMeta } from "../types/trace.js";
+
+function buildMeta(opts: {
+  tag?: string[];
+  env?: string;
+  sessionId?: string;
+  agent?: string;
+}): TraceMeta | undefined {
+  const meta: TraceMeta = {};
+  if (opts.tag && opts.tag.length > 0) meta.tags = opts.tag;
+  if (opts.env !== undefined) meta.env = opts.env;
+  if (opts.sessionId !== undefined) meta.sessionId = opts.sessionId;
+  if (opts.agent !== undefined) meta.agent = opts.agent;
+  return Object.keys(meta).length ? meta : undefined;
+}
 
 export function registerRunCommand(program: Command): void {
   const cmd = program
@@ -14,7 +29,19 @@ export function registerRunCommand(program: Command): void {
       "Buffer events and print a compact L1 tree at the end (better for large runs)",
       false,
     )
-    .option("--verbose", "Disable aggregation / auto-compact in compact mode", false);
+    .option("--verbose", "Disable aggregation / auto-compact in compact mode", false)
+    .option(
+      "--tag <tag>",
+      "Attach a tag to the saved trace (repeatable)",
+      (value: string, prev: string[]) => {
+        prev.push(value);
+        return prev;
+      },
+      [] as string[],
+    )
+    .option("--env <env>", "Environment label stored on the trace (e.g. staging)")
+    .option("--session-id <id>", "Session id stored on the trace")
+    .option("--agent <name>", "Agent name stored on the trace (e.g. router)");
 
   addFocusOptions(cmd).action(
     async (
@@ -29,15 +56,21 @@ export function registerRunCommand(program: Command): void {
         name?: string;
         depth?: number;
         model?: string;
+        tag?: string[];
+        env?: string;
+        sessionId?: string;
+        agent?: string;
       },
     ) => {
       try {
+        const meta = buildMeta(opts);
         await executeEntrypoint(entrypoint, {
           ...(opts.type !== undefined ? { type: opts.type } : {}),
           persist: opts.persist !== false,
           compact: opts.compact === true,
           verbose: opts.verbose === true,
           focus: focusFromOpts(opts),
+          ...(meta ? { meta } : {}),
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

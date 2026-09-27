@@ -1,6 +1,6 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { TraceFile } from "../types/trace.js";
+import type { TraceFile, TraceMeta } from "../types/trace.js";
 import { redactValue } from "../security/redact.js";
 
 export const TRACE_DIR_NAME = ".agentinsight";
@@ -10,7 +10,6 @@ export function resolveTraceDir(cwd: string = process.cwd()): string {
 }
 
 function timestampFilename(date = new Date()): string {
-  // Filesystem-safe ISO-like stamp: 2026-09-27T17-30-00-123Z.json
   return `${date.toISOString().replace(/[:.]/g, "-")}.json`;
 }
 
@@ -22,7 +21,6 @@ export async function saveTrace(trace: TraceFile, cwd: string = process.cwd()): 
   const filePath = path.join(dir, timestampFilename());
   await writeFile(filePath, `${JSON.stringify(safe, null, 2)}\n`, "utf8");
 
-  // Convenience pointer for replay UX (also gitignored via .agentinsight/).
   const latestPath = path.join(dir, "latest.json");
   await writeFile(latestPath, `${JSON.stringify(safe, null, 2)}\n`, "utf8");
 
@@ -45,9 +43,20 @@ export interface TraceListItem {
   costUsd?: number;
   runtime: string;
   steps: number;
+  meta?: TraceMeta;
 }
 
-export async function listTraces(cwd: string = process.cwd()): Promise<TraceListItem[]> {
+export interface ListTracesOptions {
+  tag?: string;
+  env?: string;
+  agent?: string;
+  limit?: number;
+}
+
+export async function listTraces(
+  cwd: string = process.cwd(),
+  options: ListTracesOptions = {},
+): Promise<TraceListItem[]> {
   const dir = resolveTraceDir(cwd);
   let names: string[];
   try {
@@ -64,6 +73,10 @@ export async function listTraces(cwd: string = process.cwd()): Promise<TraceList
     const full = path.join(dir, name);
     try {
       const trace = await loadTrace(full);
+      const meta = trace.meta;
+      if (options.tag && !(meta?.tags ?? []).includes(options.tag)) continue;
+      if (options.env && meta?.env !== options.env) continue;
+      if (options.agent && meta?.agent !== options.agent) continue;
       items.push({
         file: full,
         startedAt: trace.startedAt,
@@ -71,6 +84,7 @@ export async function listTraces(cwd: string = process.cwd()): Promise<TraceList
         ...(trace.summary.costUsd !== undefined ? { costUsd: trace.summary.costUsd } : {}),
         runtime: String(trace.runtime),
         steps: trace.summary.steps,
+        ...(meta ? { meta } : {}),
       });
     } catch {
       // Skip corrupt files rather than failing the whole list.
@@ -78,5 +92,8 @@ export async function listTraces(cwd: string = process.cwd()): Promise<TraceList
   }
 
   items.sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+  if (options.limit !== undefined && options.limit >= 0) {
+    return items.slice(0, options.limit);
+  }
   return items;
 }

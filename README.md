@@ -75,6 +75,9 @@ agentinsight run ./examples/claude-demo.ts
 - `--only <types>` — display filter (e.g. `error,tool,model`)
 - `--slow <ms>` — only events at least this duration
 - `--name <substr>` / `--model <substr>` / `--depth <max>` — further display filters
+- `--tag <tag>` (repeatable), `--env`, `--session-id`, `--agent` — stored on the trace for later filtering
+
+`list` flags: `--tag`, `--env`, `--agent`, `--limit`.
 
 `replay` supports the same focus flags. Filters affect the terminal view only; the saved JSON stays complete. Auto-compacts traces with more than 80 steps unless `--verbose`.
 
