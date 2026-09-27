@@ -48,13 +48,15 @@ epic.md
 .epic/
 TICKETS.md
 tickets.md
-docs/internal/
 *.plan.md
 .plans/
 NOTES.md
 notes.md
 TODO.local.md
 AGENTS.local.md
+
+# Local / internal docs (not published with the package)
+docs/
 
 # Test / debug dumps
 *.trace.json

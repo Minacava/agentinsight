@@ -5,8 +5,6 @@
 
 CLI to inspect and debug agent runs from the terminal: nodes, tool calls, nesting, latency, and (when the runtime provides them) tokens/cost — with traces saved as structured JSON.
 
-For a longer walkthrough (purpose, real terminal examples, when to use it), see [docs/overview.md](./docs/overview.md).
-
 Works with:
 
 - **LangGraph** (first-party adapter)
