@@ -32,4 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nested/depth-aware colored terminal rendering.
 - Offline examples for LangGraph and Claude Agent SDK shapes.
 - GitHub Actions CI (lint, format, test, build, `npm audit`) and npm publish on version tags.
-- `SECURITY.md`, `.env.example`, and adapter roadmap in the README.
+- `.env.example` and adapter roadmap in the README.

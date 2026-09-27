@@ -1,7 +1,6 @@
 # agentinsight
 
 [![CI](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml/badge.svg)](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/agentinsight.svg)](https://www.npmjs.com/package/agentinsight)
 
 CLI to inspect and debug agent runs from the terminal: nodes, tool calls, nesting, latency, and (when the runtime provides them) tokens/cost — with traces saved as structured JSON.
 
