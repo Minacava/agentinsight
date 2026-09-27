@@ -64,6 +64,7 @@ agentinsight run ./examples/claude-demo.ts
 | `agentinsight list`                               | Table of traces in `.agentinsight/`                        |
 | `agentinsight diff <run1.json> <run2.json>`       | Compare two saved traces (added/removed/changed steps)     |
 | `agentinsight check <entrypoint> --assert <file>` | Run quietly and evaluate JSON assertions (exit 0/1 for CI) |
+| `agentinsight inspect <file> --step <n>`          | Show full detail for one step (`--id` also supported)      |
 
 `run` flags:
 
