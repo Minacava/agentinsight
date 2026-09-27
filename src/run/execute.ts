@@ -4,6 +4,7 @@ import { langGraphAdapter } from "../adapters/langgraph.js";
 import { manualAdapter } from "../adapters/manual.js";
 import type { AgentAdapter } from "../adapters/types.js";
 import { saveTrace } from "../persist/trace-store.js";
+import { hasFocusFilters, selectFocusedEvents, type FocusOptions } from "../render/focus.js";
 import { printEvent } from "../render/formatter.js";
 import { printCompactEvents, printExecutiveSummary } from "../render/views.js";
 import { buildSummary, type TraceFile } from "../types/trace.js";
@@ -29,9 +30,9 @@ export interface ExecuteOptions {
   quiet?: boolean;
   persist?: boolean;
   cwd?: string;
-  /** Print every event live (default). When compact, buffer and print L1 compact tree at end. */
   compact?: boolean;
   verbose?: boolean;
+  focus?: FocusOptions;
 }
 
 export interface ExecuteResult {
@@ -51,11 +52,13 @@ export async function executeEntrypoint(
   const quiet = options.quiet === true;
   const compact = options.compact === true;
   const verbose = options.verbose === true;
+  const focus = options.focus ?? {};
+  const focusing = hasFocusFilters(focus);
 
   const wallStart = Date.now();
   const result = await adapter.run(
     entry,
-    quiet || compact
+    quiet || compact || focusing
       ? {}
       : {
           onEvent: (event) => {
@@ -83,9 +86,23 @@ export async function executeEntrypoint(
   }
 
   if (!quiet) {
-    if (compact) {
-      printCompactEvents(trace.events, { verbose });
+    const displayEvents = focusing ? selectFocusedEvents(trace.events, focus) : trace.events;
+
+    if (compact || focusing) {
+      if (focusing) {
+        process.stdout.write(
+          `(focus: showing ${displayEvents.length}/${trace.events.length} events)\n`,
+        );
+      }
+      if (compact) {
+        printCompactEvents(displayEvents, { verbose });
+      } else {
+        for (const event of displayEvents) {
+          printEvent(event);
+        }
+      }
     }
+
     printExecutiveSummary(trace);
     if (tracePath) {
       process.stdout.write(`\nTrace saved: ${tracePath}\n`);

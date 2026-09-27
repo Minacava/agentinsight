@@ -71,8 +71,11 @@ agentinsight run ./examples/claude-demo.ts
 - `--no-persist` — skip writing `.agentinsight/`
 - `--compact` — buffer events and print a compact tree at the end (better for large multi-model runs)
 - `--verbose` — with `--compact`, print every event (no aggregation)
+- `--only <types>` — display filter (e.g. `error,tool,model`)
+- `--slow <ms>` — only events at least this duration
+- `--name <substr>` / `--model <substr>` / `--depth <max>` — further display filters
 
-`replay` auto-compacts traces with more than 80 steps unless `--verbose` (or use `--compact` to force aggregation on smaller traces).
+`replay` supports the same focus flags. Filters affect the terminal view only; the saved JSON stays complete. Auto-compacts traces with more than 80 steps unless `--verbose`.
 
 After `run` / `replay`, an executive **SUMMARY** is printed: step mix, slowest steps, cost only if the runtime reported it, and a **BY MODEL** breakdown when model events are present.
 
