@@ -92,6 +92,9 @@ After `run` / `replay`, an executive **SUMMARY** is printed: step mix, slowest s
 
 ```bash
 agentinsight run ./examples/langgraph-demo.ts --compact
+agentinsight run ./examples/retrieval-demo.ts --only retrieval,model
+agentinsight inspect .agentinsight/latest.json --step 2
+agentinsight export .agentinsight/latest.json --out ./audit-bundle --redact pii
 agentinsight diff tests/fixtures/diff/base.json tests/fixtures/diff/changed.json
 agentinsight check ./examples/langgraph-demo.ts --assert ./examples/assertions.json
 ```
