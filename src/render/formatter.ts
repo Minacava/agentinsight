@@ -13,6 +13,8 @@ function colorForType(type: TraceEvent["type"]): (text: string) => string {
       return chalk.blue;
     case "node":
       return chalk.green;
+    case "retrieval":
+      return chalk.yellow;
     default:
       return chalk.white;
   }

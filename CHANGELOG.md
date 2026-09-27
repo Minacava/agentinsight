@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run metadata (`--tag`, `--env`, `--session-id`, `--agent`) and `list` filters (`--tag`, `--env`, `--agent`, `--limit`).
 - Redaction profiles on persist: `--redact default|pii` (PII strips emails/phones).
 - Richer `check` asserts: `requiredSteps`, `maxStepDurationMs`.
+- `retrieval` event type with offline multi-step demo (`examples/retrieval-demo.ts`).
 
 ## [0.1.0] - 2026-09-27
 

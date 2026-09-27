@@ -1,6 +1,14 @@
 import type { TraceEvent, TraceEventType } from "../types/trace.js";
 
-const ALL_TYPES: TraceEventType[] = ["node", "tool", "message", "model", "error", "span"];
+const ALL_TYPES: TraceEventType[] = [
+  "node",
+  "tool",
+  "message",
+  "model",
+  "retrieval",
+  "error",
+  "span",
+];
 
 export interface FocusOptions {
   /** Comma-separated event types, e.g. "error,tool,model". */

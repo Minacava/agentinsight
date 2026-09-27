@@ -4,7 +4,7 @@
 
 export type AgentRuntime = "langgraph" | "claude-agent-sdk" | "manual" | (string & {});
 
-export type TraceEventType = "node" | "tool" | "message" | "model" | "error" | "span";
+export type TraceEventType = "node" | "tool" | "message" | "model" | "retrieval" | "error" | "span";
 
 export interface TokenUsage {
   input?: number;

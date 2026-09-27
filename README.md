@@ -48,11 +48,12 @@ agentinsight replay .agentinsight/latest.json --step
 agentinsight list
 ```
 
-Both offline demos (no API keys):
+Offline demos (no API keys):
 
 ```bash
 agentinsight run ./examples/langgraph-demo.ts
 agentinsight run ./examples/claude-demo.ts
+agentinsight run ./examples/retrieval-demo.ts
 ```
 
 ## Commands
@@ -115,11 +116,13 @@ export default {
 export default {
   runtime: "manual",
   async run(tracer) {
-    await tracer.withSpan("retrieve", async () => { /* … */ }, { type: "tool" });
+    await tracer.withSpan("vector.search", async () => { /* … */ }, { type: "retrieval" });
     await tracer.withSpan("answer", async () => { /* … */ }, { type: "node" });
   },
 };
 ```
+
+Event types: `node`, `tool`, `message`, `model`, `retrieval`, `error`, `span`.
 
 ## Architecture
 
