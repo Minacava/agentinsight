@@ -1,44 +1,167 @@
 # agentinsight
 
-CLI for inspecting and debugging agents built with LangGraph or the Claude Agent SDK.
+[![CI](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml/badge.svg)](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/agentinsight.svg)](https://www.npmjs.com/package/agentinsight)
+
+CLI to inspect and debug agent runs from the terminal: nodes, tool calls, nesting, latency, and estimated cost — with traces saved as structured JSON.
+
+Works with:
+
+- **LangGraph** (first-party adapter)
+- **Claude Agent SDK** (first-party adapter)
+- **Any custom agent** via the manual `Tracer` API / `runtime: "manual"`
 
 ## Requirements
 
 - Node.js 18+
 
-## Install (local development)
+## Quickstart
 
 ```bash
 npm install
 npm run build
 npm link
+
+agentinsight run ./examples/langgraph-demo.ts
 ```
 
-After linking, the `agentinsight` command is available on your PATH.
+Example output shape:
+
+```text
+[node] plan  2ms  {"topic":"agentinsight"}
+[tool] lookup  1ms  "Notes about agentinsight: …"
+[node] gather  2ms  {"notes":"Notes about …"}
+[node] finalize  1ms  {"finalAnswer":"Summary for …"}
+
+Summary
+  steps:    4
+  duration: 12ms
+
+Trace saved: .agentinsight/2026-09-27T17-30-00-123Z.json
+```
+
+Replay and list:
 
 ```bash
-agentinsight --help
-agentinsight --version
+agentinsight replay .agentinsight/latest.json
+agentinsight replay .agentinsight/latest.json --step
+agentinsight list
+```
+
+Both offline demos (no API keys):
+
+```bash
+agentinsight run ./examples/langgraph-demo.ts
+agentinsight run ./examples/claude-demo.ts
+```
+
+## Commands
+
+| Command                         | Description                                                |
+| ------------------------------- | ---------------------------------------------------------- |
+| `agentinsight run <entrypoint>` | Execute an instrumented agent; print live trace; save JSON |
+| `agentinsight replay <file>`    | Replay a saved trace (optional `--step`)                   |
+| `agentinsight list`             | Table of traces in `.agentinsight/`                        |
+
+`run` flags:
+
+- `--type langgraph|claude|claude-agent-sdk|manual` — force adapter
+- `--no-persist` — skip writing `.agentinsight/`
+
+## Entrypoint contract
+
+Export `default` (or named `graph` / `agent`) as one of:
+
+```ts
+// LangGraph
+export default {
+  runtime: "langgraph",
+  graph,          // compiled graph with streamEvents()
+  input: { ... },
+};
+
+// Claude Agent SDK
+export default {
+  runtime: "claude-agent-sdk",
+  prompt: "…",
+  options: { /* SDK options */ },
+};
+
+// Any custom agent
+export default {
+  runtime: "manual",
+  async run(tracer) {
+    await tracer.withSpan("retrieve", async () => { /* … */ }, { type: "tool" });
+    await tracer.withSpan("answer", async () => { /* … */ }, { type: "node" });
+  },
+};
+```
+
+## Architecture
+
+```text
+entrypoint → detect runtime → adapter → TraceEvent[] → terminal renderer
+                                         └→ .agentinsight/*.json (redacted)
+```
+
+1. **Unified model** — every adapter emits the same `TraceEvent` shape (`step`, `type`, `name`, `durationMs`, `depth`, payloads, tokens/cost).
+2. **Adapters** — thin runtime-specific capture layers that only translate framework hooks into `TraceEvent`s.
+3. **Manual tracer** — framework-agnostic API so unsupported stacks are instrumentable without waiting on a first-party adapter.
+4. **Persistence** — JSON traces under `.agentinsight/` (gitignored). Values pass through secret redaction before disk write.
+5. **Replay/list** — read-only views over saved traces; no LLM calls.
+
+### LangGraph adapter
+
+Wraps `graph.streamEvents(..., { version: "v2" })`, maps `on_chain_*` / `on_tool_*` / `on_chat_model_*` into events, and attaches `usage_metadata` when present.
+
+### Claude Agent SDK adapter
+
+Merges `PreToolUse` / `PostToolUse` / `PostToolUseFailure` hooks and observes the `query()` message stream (`assistant` / `user` / `result`) for turns, tokens, and `total_cost_usd`.
+
+### Manual adapter
+
+Calls your `run(tracer)` function. Use `tracer.record` / `tracer.withSpan` to emit events for any stack.
+
+## Adapter roadmap
+
+Shipped:
+
+- Manual / custom agents (`Tracer`)
+- LangGraph
+- Claude Agent SDK
+
+Next (in order):
+
+1. OpenAI Agents SDK
+2. Vercel AI SDK
+3. LangChain callbacks (non-graph Runnables)
+4. LlamaIndex TS
+5. Additional frameworks as usage demands
+
+Custom adapters only need to implement `AgentAdapter` and emit `TraceEvent`s.
+
+## Security
+
+- Do not commit `.env`, credentials, or `.agentinsight/` traces.
+- Trace writes redact common secret keys and token patterns.
+- See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
+- CI runs `npm audit` on every PR.
+
+## Library API
+
+```ts
+import { Tracer, executeEntrypoint, redactValue } from "agentinsight";
 ```
 
 ## Scripts
 
-| Script           | Description                                 |
-| ---------------- | ------------------------------------------- |
-| `npm run build`  | Compile TypeScript to `dist/`               |
-| `npm run dev`    | Run the CLI via `tsx` without a prior build |
-| `npm test`       | Run Vitest                                  |
-| `npm run lint`   | Run ESLint                                  |
-| `npm run format` | Format with Prettier                        |
-
-## Project layout
-
-```
-src/         CLI and library source
-tests/       Vitest suites
-examples/    Sample agents (added in later tickets)
-.agentinsight/  Runtime traces (created by `run`, gitignored)
-```
+| Script           | Description                    |
+| ---------------- | ------------------------------ |
+| `npm run build`  | Compile TypeScript to `dist/`  |
+| `npm test`       | Vitest                         |
+| `npm run lint`   | ESLint                         |
+| `npm run audit`  | Dependency vulnerability audit |
+| `npm run format` | Prettier                       |
 
 ## License
 

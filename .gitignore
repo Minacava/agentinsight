@@ -1,11 +1,63 @@
+# Dependencies and build
 node_modules/
 dist/
 coverage/
+*.tsbuildinfo
+
+# Runtime traces (may contain prompt/tool payloads)
 .agentinsight/
-agent-tools/
-*.log
-.DS_Store
+
+# Secrets and local credentials — never commit
 .env
 .env.*
 !.env.example
-*.tsbuildinfo
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.keystore
+credentials.json
+service-account*.json
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local agent / tool scratch (not for public consumers)
+agent-tools/
+.cursor/
+.claude/
+.local/
+
+# Internal epic / ticket planning (not part of the public product)
+EPIC.md
+epic.md
+*.epic.md
+.epic/
+TICKETS.md
+tickets.md
+docs/internal/
+*.plan.md
+.plans/
+NOTES.md
+notes.md
+TODO.local.md
+AGENTS.local.md
+
+# Test / debug dumps
+*.trace.json
+tmp/
+temp/
+.cache/
