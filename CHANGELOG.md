@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- README keeps a source-based quickstart only (npm version badge removed until the package is published).
+- Removed top-level `CONTRIBUTING.md` and `SECURITY.md` from the public tree.
+
 ### Added
 
 - CLI command `diff` to compare two saved traces (step alignment, duration/cost/token deltas, final output diff).
