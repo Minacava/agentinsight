@@ -35,5 +35,13 @@ export { saveTrace, loadTrace, listTraces, TRACE_DIR_NAME } from "./persist/trac
 export { executeEntrypoint } from "./run/execute.js";
 export { formatEventLine, printEvent } from "./render/formatter.js";
 export { formatSummary, printSummary } from "./render/summary.js";
+export {
+  AUTO_COMPACT_STEP_THRESHOLD,
+  buildExecutiveSummary,
+  formatCompactEvents,
+  formatExecutiveSummary,
+  printCompactEvents,
+  printExecutiveSummary,
+} from "./render/views.js";
 
 export const PACKAGE_NAME = "agentinsight" as const;

@@ -5,7 +5,7 @@ import { manualAdapter } from "../adapters/manual.js";
 import type { AgentAdapter } from "../adapters/types.js";
 import { saveTrace } from "../persist/trace-store.js";
 import { printEvent } from "../render/formatter.js";
-import { printSummary } from "../render/summary.js";
+import { printCompactEvents, printExecutiveSummary } from "../render/views.js";
 import { buildSummary, type TraceFile } from "../types/trace.js";
 import { loadEntrypoint } from "./load-entrypoint.js";
 
@@ -29,6 +29,9 @@ export interface ExecuteOptions {
   quiet?: boolean;
   persist?: boolean;
   cwd?: string;
+  /** Print every event live (default). When compact, buffer and print L1 compact tree at end. */
+  compact?: boolean;
+  verbose?: boolean;
 }
 
 export interface ExecuteResult {
@@ -45,11 +48,14 @@ export async function executeEntrypoint(
   const entry = await loadEntrypoint(entrypoint);
   const runtime = parseRuntimeFlag(options.type) ?? detectRuntime(entry);
   const adapter = adapterFor(runtime);
+  const quiet = options.quiet === true;
+  const compact = options.compact === true;
+  const verbose = options.verbose === true;
 
   const wallStart = Date.now();
   const result = await adapter.run(
     entry,
-    options.quiet
+    quiet || compact
       ? {}
       : {
           onEvent: (event) => {
@@ -76,8 +82,11 @@ export async function executeEntrypoint(
     tracePath = await saveTrace(trace, options.cwd);
   }
 
-  if (!options.quiet) {
-    printSummary(summary);
+  if (!quiet) {
+    if (compact) {
+      printCompactEvents(trace.events, { verbose });
+    }
+    printExecutiveSummary(trace);
     if (tracePath) {
       process.stdout.write(`\nTrace saved: ${tracePath}\n`);
     }

@@ -3,7 +3,11 @@ import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { loadTrace } from "../persist/trace-store.js";
 import { printEvent } from "../render/formatter.js";
-import { printSummary } from "../render/summary.js";
+import {
+  AUTO_COMPACT_STEP_THRESHOLD,
+  printCompactEvents,
+  printExecutiveSummary,
+} from "../render/views.js";
 
 async function waitForEnter(): Promise<void> {
   const rl = createInterface({ input, output });
@@ -20,21 +24,36 @@ export function registerReplayCommand(program: Command): void {
     .description("Replay a saved trace in the terminal without calling an LLM")
     .argument("<trace-file>", "Path to a .agentinsight JSON trace")
     .option("--step", "Advance one event at a time (press Enter)", false)
-    .action(async (traceFile: string, opts: { step?: boolean }) => {
-      try {
-        const trace = await loadTrace(traceFile);
-        for (const event of trace.events) {
-          printEvent(event);
-          if (opts.step) {
-            output.write("Press Enter for next step…");
-            await waitForEnter();
+    .option("--verbose", "Print every event line (disable auto-compact for large traces)", false)
+    .option("--compact", "Force compact aggregation even for small traces", false)
+    .action(
+      async (traceFile: string, opts: { step?: boolean; verbose?: boolean; compact?: boolean }) => {
+        try {
+          const trace = await loadTrace(traceFile);
+          const verbose = opts.verbose === true;
+          const useCompactView =
+            !opts.step &&
+            !verbose &&
+            (opts.compact === true || trace.events.length > AUTO_COMPACT_STEP_THRESHOLD);
+
+          if (useCompactView) {
+            printCompactEvents(trace.events, { verbose: false });
+          } else {
+            for (const event of trace.events) {
+              printEvent(event);
+              if (opts.step) {
+                output.write("Press Enter for next step…");
+                await waitForEnter();
+              }
+            }
           }
+
+          printExecutiveSummary(trace);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(`Error: ${message}`);
+          process.exitCode = 1;
         }
-        printSummary(trace.summary);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(`Error: ${message}`);
-        process.exitCode = 1;
-      }
-    });
+      },
+    );
 }

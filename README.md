@@ -69,8 +69,15 @@ agentinsight run ./examples/claude-demo.ts
 
 - `--type langgraph|claude|claude-agent-sdk|manual` — force adapter
 - `--no-persist` — skip writing `.agentinsight/`
+- `--compact` — buffer events and print a compact tree at the end (better for large multi-model runs)
+- `--verbose` — with `--compact`, print every event (no aggregation)
+
+`replay` auto-compacts traces with more than 80 steps unless `--verbose` (or use `--compact` to force aggregation on smaller traces).
+
+After `run` / `replay`, an executive **SUMMARY** is printed: step mix, slowest steps, cost only if the runtime reported it, and a **BY MODEL** breakdown when model events are present.
 
 ```bash
+agentinsight run ./examples/langgraph-demo.ts --compact
 agentinsight diff tests/fixtures/diff/base.json tests/fixtures/diff/changed.json
 agentinsight check ./examples/langgraph-demo.ts --assert ./examples/assertions.json
 ```
