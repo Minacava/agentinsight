@@ -1,11 +1,18 @@
 import type { TraceFile } from "../types/trace.js";
 
+export interface StepDurationAssert {
+  name: string;
+  maxMs: number;
+}
+
 export interface AssertionFile {
   maxSteps?: number;
   noErrors?: boolean;
   outputContains?: string;
   maxDurationMs?: number;
   maxCostUsd?: number;
+  requiredSteps?: string[];
+  maxStepDurationMs?: StepDurationAssert[];
 }
 
 export interface AssertionFailure {
@@ -70,6 +77,36 @@ export function parseAssertionFile(raw: unknown): AssertionFile {
       throw new Error("assertions.maxCostUsd must be a number");
     }
     asserts.maxCostUsd = obj.maxCostUsd;
+  }
+  if (obj.requiredSteps !== undefined) {
+    if (
+      !Array.isArray(obj.requiredSteps) ||
+      !obj.requiredSteps.every((s) => typeof s === "string")
+    ) {
+      throw new Error("assertions.requiredSteps must be an array of strings");
+    }
+    asserts.requiredSteps = obj.requiredSteps;
+  }
+  if (obj.maxStepDurationMs !== undefined) {
+    if (!Array.isArray(obj.maxStepDurationMs)) {
+      throw new Error("assertions.maxStepDurationMs must be an array");
+    }
+    asserts.maxStepDurationMs = obj.maxStepDurationMs.map((item, i) => {
+      if (
+        typeof item !== "object" ||
+        item === null ||
+        typeof (item as { name?: unknown }).name !== "string" ||
+        typeof (item as { maxMs?: unknown }).maxMs !== "number"
+      ) {
+        throw new Error(
+          `assertions.maxStepDurationMs[${i}] must be { name: string, maxMs: number }`,
+        );
+      }
+      return {
+        name: (item as StepDurationAssert).name,
+        maxMs: (item as StepDurationAssert).maxMs,
+      };
+    });
   }
 
   return asserts;
@@ -150,6 +187,42 @@ export function evaluateAssertions(
         expected: `<= ${asserts.maxCostUsd}`,
         actual: String(trace.summary.costUsd),
       });
+    }
+  }
+
+  if (asserts.requiredSteps !== undefined) {
+    checked.push("requiredSteps");
+    const names = new Set(trace.events.map((e) => e.name));
+    const missing = asserts.requiredSteps.filter((n) => !names.has(n));
+    if (missing.length > 0) {
+      failures.push({
+        rule: "requiredSteps",
+        expected: `includes ${JSON.stringify(asserts.requiredSteps)}`,
+        actual: `missing ${JSON.stringify(missing)}`,
+      });
+    }
+  }
+
+  if (asserts.maxStepDurationMs !== undefined) {
+    checked.push("maxStepDurationMs");
+    for (const rule of asserts.maxStepDurationMs) {
+      const matches = trace.events.filter((e) => e.name === rule.name);
+      if (matches.length === 0) {
+        failures.push({
+          rule: "maxStepDurationMs",
+          expected: `${rule.name} <= ${rule.maxMs}ms`,
+          actual: `step "${rule.name}" not found`,
+        });
+        continue;
+      }
+      const slowest = Math.max(...matches.map((e) => e.durationMs));
+      if (slowest > rule.maxMs) {
+        failures.push({
+          rule: "maxStepDurationMs",
+          expected: `${rule.name} <= ${rule.maxMs}ms`,
+          actual: `${slowest}ms`,
+        });
+      }
     }
   }
 

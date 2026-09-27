@@ -48,34 +48,55 @@ agentinsight replay .agentinsight/latest.json --step
 agentinsight list
 ```
 
-Both offline demos (no API keys):
+Offline demos (no API keys):
 
 ```bash
 agentinsight run ./examples/langgraph-demo.ts
 agentinsight run ./examples/claude-demo.ts
+agentinsight run ./examples/retrieval-demo.ts
 ```
 
 ## Commands
 
-| Command                                           | Description                                                |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| `agentinsight run <entrypoint>`                   | Execute an instrumented agent; print live trace; save JSON |
-| `agentinsight replay <file>`                      | Replay a saved trace (optional `--step`)                   |
-| `agentinsight list`                               | Table of traces in `.agentinsight/`                        |
-| `agentinsight diff <run1.json> <run2.json>`       | Compare two saved traces (added/removed/changed steps)     |
-| `agentinsight check <entrypoint> --assert <file>` | Run quietly and evaluate JSON assertions (exit 0/1 for CI) |
+| Command                                           | Description                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------ |
+| `agentinsight run <entrypoint>`                   | Execute an instrumented agent; print live trace; save JSON   |
+| `agentinsight replay <file>`                      | Replay a saved trace (optional `--step`)                     |
+| `agentinsight list`                               | Table of traces in `.agentinsight/`                          |
+| `agentinsight diff <run1.json> <run2.json>`       | Compare two saved traces (deltas only; `--full` for all)     |
+| `agentinsight check <entrypoint> --assert <file>` | Run quietly and evaluate JSON assertions (exit 0/1 for CI)   |
+| `agentinsight inspect <file> --step <n>`          | Show full detail for one step (`--id` also supported)        |
+| `agentinsight export <file>`                      | Write a redacted audit bundle (`trace.json` + `summary.txt`) |
 
 `run` flags:
 
 - `--type langgraph|claude|claude-agent-sdk|manual` — force adapter
 - `--no-persist` — skip writing `.agentinsight/`
+- `--compact` — buffer events and print a compact tree at the end (better for large multi-model runs)
+- `--verbose` — with `--compact`, print every event (no aggregation)
+- `--only <types>` — display filter (e.g. `error,tool,model`)
+- `--slow <ms>` — only events at least this duration
+- `--name <substr>` / `--model <substr>` / `--depth <max>` — further display filters
+- `--tag <tag>` (repeatable), `--env`, `--session-id`, `--agent` — stored on the trace for later filtering
+- `--redact default|pii` — redaction profile when saving traces (`pii` also strips emails/phones)
+
+`list` flags: `--tag`, `--env`, `--agent`, `--limit`.
+
+`export` flags: `--out <dir>`, `--redact default|pii`, `--assert <file>` (writes `assertions.json` into the bundle).
+
+`diff` shows only added/removed/changed steps by default (truncates after 50 changes). Use `--full` to include unchanged steps and disable truncation.
+
+`replay` supports the same focus flags. Filters affect the terminal view only; the saved JSON stays complete. Auto-compacts traces with more than 80 steps unless `--verbose`.
+
+After `run` / `replay`, an executive **SUMMARY** is printed: step mix, slowest steps, cost only if the runtime reported it, and a **BY MODEL** breakdown when model events are present.
 
 ```bash
+agentinsight run ./examples/langgraph-demo.ts --compact
 agentinsight diff tests/fixtures/diff/base.json tests/fixtures/diff/changed.json
 agentinsight check ./examples/langgraph-demo.ts --assert ./examples/assertions.json
 ```
 
-Assertion file keys (all optional): `maxSteps`, `noErrors`, `outputContains`, `maxDurationMs`, `maxCostUsd`.
+Assertion file keys (all optional): `maxSteps`, `noErrors`, `outputContains`, `maxDurationMs`, `maxCostUsd`, `requiredSteps`, `maxStepDurationMs`.
 
 ## Entrypoint contract
 
@@ -100,11 +121,13 @@ export default {
 export default {
   runtime: "manual",
   async run(tracer) {
-    await tracer.withSpan("retrieve", async () => { /* … */ }, { type: "tool" });
+    await tracer.withSpan("vector.search", async () => { /* … */ }, { type: "retrieval" });
     await tracer.withSpan("answer", async () => { /* … */ }, { type: "node" });
   },
 };
 ```
+
+Event types: `node`, `tool`, `message`, `model`, `retrieval`, `error`, `span`.
 
 ## Architecture
 

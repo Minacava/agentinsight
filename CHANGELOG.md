@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CLI command `diff` to compare two saved traces (step alignment, duration/cost/token deltas, final output diff).
 - CLI command `check` to run an entrypoint against a JSON assertion file (CI exit codes).
+- Executive L0 summary after `run`/`replay` (mix, slowest, cost source, optional by-model breakdown) and compact L1 aggregation (`--compact` / auto-compact on large replays).
+- Focus filters on `run`/`replay`: `--only`, `--slow`, `--name`, `--depth`, `--model` (display-only; full trace still persisted).
+- CLI command `inspect` to show redacted detail for one trace step (`--step` / `--id`).
+- Run metadata (`--tag`, `--env`, `--session-id`, `--agent`) and `list` filters (`--tag`, `--env`, `--agent`, `--limit`).
+- Redaction profiles on persist: `--redact default|pii` (PII strips emails/phones).
+- Richer `check` asserts: `requiredSteps`, `maxStepDurationMs`.
+- `retrieval` event type with offline multi-step demo (`examples/retrieval-demo.ts`).
+- CLI command `export` for redacted audit bundles (`trace.json`, `summary.txt`, optional `assertions.json`).
+- Compact `diff` output by default (deltas only, truncate after 50 changes, truncated final output) with `--full`.
 
 ## [0.1.0] - 2026-09-27
 

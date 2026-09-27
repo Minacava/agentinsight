@@ -4,9 +4,11 @@ import { langGraphAdapter } from "../adapters/langgraph.js";
 import { manualAdapter } from "../adapters/manual.js";
 import type { AgentAdapter } from "../adapters/types.js";
 import { saveTrace } from "../persist/trace-store.js";
+import { hasFocusFilters, selectFocusedEvents, type FocusOptions } from "../render/focus.js";
 import { printEvent } from "../render/formatter.js";
-import { printSummary } from "../render/summary.js";
-import { buildSummary, type TraceFile } from "../types/trace.js";
+import { printCompactEvents, printExecutiveSummary } from "../render/views.js";
+import type { RedactProfile } from "../security/redact.js";
+import { buildSummary, type TraceFile, type TraceMeta } from "../types/trace.js";
 import { loadEntrypoint } from "./load-entrypoint.js";
 
 function adapterFor(runtime: ReturnType<typeof detectRuntime>): AgentAdapter {
@@ -29,6 +31,11 @@ export interface ExecuteOptions {
   quiet?: boolean;
   persist?: boolean;
   cwd?: string;
+  compact?: boolean;
+  verbose?: boolean;
+  focus?: FocusOptions;
+  meta?: TraceMeta;
+  redact?: RedactProfile;
 }
 
 export interface ExecuteResult {
@@ -45,11 +52,16 @@ export async function executeEntrypoint(
   const entry = await loadEntrypoint(entrypoint);
   const runtime = parseRuntimeFlag(options.type) ?? detectRuntime(entry);
   const adapter = adapterFor(runtime);
+  const quiet = options.quiet === true;
+  const compact = options.compact === true;
+  const verbose = options.verbose === true;
+  const focus = options.focus ?? {};
+  const focusing = hasFocusFilters(focus);
 
   const wallStart = Date.now();
   const result = await adapter.run(
     entry,
-    options.quiet
+    quiet || compact || focusing
       ? {}
       : {
           onEvent: (event) => {
@@ -69,15 +81,33 @@ export async function executeEntrypoint(
     endedAt: endedAt.toISOString(),
     events: result.events,
     summary,
+    ...(options.meta && Object.keys(options.meta).length > 0 ? { meta: options.meta } : {}),
   };
 
   let tracePath: string | undefined;
   if (options.persist !== false) {
-    tracePath = await saveTrace(trace, options.cwd);
+    tracePath = await saveTrace(trace, options.cwd, options.redact ?? "default");
   }
 
-  if (!options.quiet) {
-    printSummary(summary);
+  if (!quiet) {
+    const displayEvents = focusing ? selectFocusedEvents(trace.events, focus) : trace.events;
+
+    if (compact || focusing) {
+      if (focusing) {
+        process.stdout.write(
+          `(focus: showing ${displayEvents.length}/${trace.events.length} events)\n`,
+        );
+      }
+      if (compact) {
+        printCompactEvents(displayEvents, { verbose });
+      } else {
+        for (const event of displayEvents) {
+          printEvent(event);
+        }
+      }
+    }
+
+    printExecutiveSummary(trace);
     if (tracePath) {
       process.stdout.write(`\nTrace saved: ${tracePath}\n`);
     }
