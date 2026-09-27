@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redaction profiles on persist: `--redact default|pii` (PII strips emails/phones).
 - Richer `check` asserts: `requiredSteps`, `maxStepDurationMs`.
 - `retrieval` event type with offline multi-step demo (`examples/retrieval-demo.ts`).
+- CLI command `export` for redacted audit bundles (`trace.json`, `summary.txt`, optional `assertions.json`).
 
 ## [0.1.0] - 2026-09-27
 

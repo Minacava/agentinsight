@@ -58,14 +58,15 @@ agentinsight run ./examples/retrieval-demo.ts
 
 ## Commands
 
-| Command                                           | Description                                                |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| `agentinsight run <entrypoint>`                   | Execute an instrumented agent; print live trace; save JSON |
-| `agentinsight replay <file>`                      | Replay a saved trace (optional `--step`)                   |
-| `agentinsight list`                               | Table of traces in `.agentinsight/`                        |
-| `agentinsight diff <run1.json> <run2.json>`       | Compare two saved traces (added/removed/changed steps)     |
-| `agentinsight check <entrypoint> --assert <file>` | Run quietly and evaluate JSON assertions (exit 0/1 for CI) |
-| `agentinsight inspect <file> --step <n>`          | Show full detail for one step (`--id` also supported)      |
+| Command                                           | Description                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------ |
+| `agentinsight run <entrypoint>`                   | Execute an instrumented agent; print live trace; save JSON   |
+| `agentinsight replay <file>`                      | Replay a saved trace (optional `--step`)                     |
+| `agentinsight list`                               | Table of traces in `.agentinsight/`                          |
+| `agentinsight diff <run1.json> <run2.json>`       | Compare two saved traces (added/removed/changed steps)       |
+| `agentinsight check <entrypoint> --assert <file>` | Run quietly and evaluate JSON assertions (exit 0/1 for CI)   |
+| `agentinsight inspect <file> --step <n>`          | Show full detail for one step (`--id` also supported)        |
+| `agentinsight export <file>`                      | Write a redacted audit bundle (`trace.json` + `summary.txt`) |
 
 `run` flags:
 
@@ -80,6 +81,8 @@ agentinsight run ./examples/retrieval-demo.ts
 - `--redact default|pii` — redaction profile when saving traces (`pii` also strips emails/phones)
 
 `list` flags: `--tag`, `--env`, `--agent`, `--limit`.
+
+`export` flags: `--out <dir>`, `--redact default|pii`, `--assert <file>` (writes `assertions.json` into the bundle).
 
 `replay` supports the same focus flags. Filters affect the terminal view only; the saved JSON stays complete. Auto-compacts traces with more than 80 steps unless `--verbose`.
 

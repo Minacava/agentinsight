@@ -33,6 +33,8 @@ export { detectRuntime, parseRuntimeFlag } from "./adapters/detect.js";
 export { redactValue, redactString, redactTracePayload } from "./security/redact.js";
 
 export { saveTrace, loadTrace, listTraces, TRACE_DIR_NAME } from "./persist/trace-store.js";
+export { writeAuditBundle } from "./export/bundle.js";
+export type { ExportBundleOptions, ExportBundleResult } from "./export/bundle.js";
 export { executeEntrypoint } from "./run/execute.js";
 export { formatEventLine, printEvent } from "./render/formatter.js";
 export { formatSummary, printSummary } from "./render/summary.js";
