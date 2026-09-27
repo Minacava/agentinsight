@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.0] - 2026-09-27
+
+### Added
+
+- Unified `TraceEvent` model and `Tracer` API for any custom agent.
+- First-party adapters: LangGraph (`streamEvents` v2) and Claude Agent SDK (hooks + message stream).
+- CLI commands: `run`, `replay` (`--step`), `list`.
+- Trace persistence under `.agentinsight/` with secret redaction.
+- Nested/depth-aware colored terminal rendering.
+- Offline examples for LangGraph and Claude Agent SDK shapes.
+- GitHub Actions CI (lint, format, test, build, `npm audit`) and npm publish on version tags.
+- `SECURITY.md`, `.env.example`, and adapter roadmap in the README.
