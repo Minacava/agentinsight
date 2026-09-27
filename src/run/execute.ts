@@ -7,6 +7,7 @@ import { saveTrace } from "../persist/trace-store.js";
 import { hasFocusFilters, selectFocusedEvents, type FocusOptions } from "../render/focus.js";
 import { printEvent } from "../render/formatter.js";
 import { printCompactEvents, printExecutiveSummary } from "../render/views.js";
+import type { RedactProfile } from "../security/redact.js";
 import { buildSummary, type TraceFile, type TraceMeta } from "../types/trace.js";
 import { loadEntrypoint } from "./load-entrypoint.js";
 
@@ -34,6 +35,7 @@ export interface ExecuteOptions {
   verbose?: boolean;
   focus?: FocusOptions;
   meta?: TraceMeta;
+  redact?: RedactProfile;
 }
 
 export interface ExecuteResult {
@@ -84,7 +86,7 @@ export async function executeEntrypoint(
 
   let tracePath: string | undefined;
   if (options.persist !== false) {
-    tracePath = await saveTrace(trace, options.cwd);
+    tracePath = await saveTrace(trace, options.cwd, options.redact ?? "default");
   }
 
   if (!quiet) {

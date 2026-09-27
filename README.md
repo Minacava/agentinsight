@@ -76,6 +76,7 @@ agentinsight run ./examples/claude-demo.ts
 - `--slow <ms>` — only events at least this duration
 - `--name <substr>` / `--model <substr>` / `--depth <max>` — further display filters
 - `--tag <tag>` (repeatable), `--env`, `--session-id`, `--agent` — stored on the trace for later filtering
+- `--redact default|pii` — redaction profile when saving traces (`pii` also strips emails/phones)
 
 `list` flags: `--tag`, `--env`, `--agent`, `--limit`.
 

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus filters on `run`/`replay`: `--only`, `--slow`, `--name`, `--depth`, `--model` (display-only; full trace still persisted).
 - CLI command `inspect` to show redacted detail for one trace step (`--step` / `--id`).
 - Run metadata (`--tag`, `--env`, `--session-id`, `--agent`) and `list` filters (`--tag`, `--env`, `--agent`, `--limit`).
+- Redaction profiles on persist: `--redact default|pii` (PII strips emails/phones).
 
 ## [0.1.0] - 2026-09-27
 

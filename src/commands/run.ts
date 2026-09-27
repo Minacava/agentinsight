@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { addFocusOptions, focusFromOpts } from "../cli/focus-options.js";
 import { executeEntrypoint } from "../run/execute.js";
+import { parseRedactProfile } from "../security/redact.js";
 import type { TraceMeta } from "../types/trace.js";
 
 function buildMeta(opts: {
@@ -41,7 +42,8 @@ export function registerRunCommand(program: Command): void {
     )
     .option("--env <env>", "Environment label stored on the trace (e.g. staging)")
     .option("--session-id <id>", "Session id stored on the trace")
-    .option("--agent <name>", "Agent name stored on the trace (e.g. router)");
+    .option("--agent <name>", "Agent name stored on the trace (e.g. router)")
+    .option("--redact <profile>", "Redaction profile when persisting: default|pii", "default");
 
   addFocusOptions(cmd).action(
     async (
@@ -60,6 +62,7 @@ export function registerRunCommand(program: Command): void {
         env?: string;
         sessionId?: string;
         agent?: string;
+        redact?: string;
       },
     ) => {
       try {
@@ -70,6 +73,7 @@ export function registerRunCommand(program: Command): void {
           compact: opts.compact === true,
           verbose: opts.verbose === true,
           focus: focusFromOpts(opts),
+          redact: parseRedactProfile(opts.redact),
           ...(meta ? { meta } : {}),
         });
       } catch (err) {

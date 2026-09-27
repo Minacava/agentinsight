@@ -19,4 +19,13 @@ describe("redactValue", () => {
     expect(String(out)).toContain("[REDACTED]");
     expect(String(out)).not.toContain("sk-abcdefghijklmnop");
   });
+
+  it("redacts emails and phones with pii profile", () => {
+    const raw = "Contact ada@example.com or +1 415-555-0100";
+    expect(String(redactValue(raw, 0, "default"))).toContain("ada@example.com");
+    const pii = String(redactValue(raw, 0, "pii"));
+    expect(pii).toContain("[REDACTED]");
+    expect(pii).not.toContain("ada@example.com");
+    expect(pii).not.toContain("415-555-0100");
+  });
 });

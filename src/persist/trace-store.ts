@@ -1,7 +1,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { TraceFile, TraceMeta } from "../types/trace.js";
-import { redactValue } from "../security/redact.js";
+import { redactValue, type RedactProfile } from "../security/redact.js";
 
 export const TRACE_DIR_NAME = ".agentinsight";
 
@@ -13,11 +13,15 @@ function timestampFilename(date = new Date()): string {
   return `${date.toISOString().replace(/[:.]/g, "-")}.json`;
 }
 
-export async function saveTrace(trace: TraceFile, cwd: string = process.cwd()): Promise<string> {
+export async function saveTrace(
+  trace: TraceFile,
+  cwd: string = process.cwd(),
+  profile: RedactProfile = "default",
+): Promise<string> {
   const dir = resolveTraceDir(cwd);
   await mkdir(dir, { recursive: true });
 
-  const safe = redactValue(trace) as TraceFile;
+  const safe = redactValue(trace, 0, profile) as TraceFile;
   const filePath = path.join(dir, timestampFilename());
   await writeFile(filePath, `${JSON.stringify(safe, null, 2)}\n`, "utf8");
 
