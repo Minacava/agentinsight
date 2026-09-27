@@ -1,0 +1,5 @@
+{
+  "noErrors": true,
+  "requiredSteps": ["plan", "finalize"],
+  "maxStepDurationMs": [{ "name": "gather", "maxMs": 5000 }]
+}

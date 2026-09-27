@@ -90,7 +90,7 @@ agentinsight diff tests/fixtures/diff/base.json tests/fixtures/diff/changed.json
 agentinsight check ./examples/langgraph-demo.ts --assert ./examples/assertions.json
 ```
 
-Assertion file keys (all optional): `maxSteps`, `noErrors`, `outputContains`, `maxDurationMs`, `maxCostUsd`.
+Assertion file keys (all optional): `maxSteps`, `noErrors`, `outputContains`, `maxDurationMs`, `maxCostUsd`, `requiredSteps`, `maxStepDurationMs`.
 
 ## Entrypoint contract
 

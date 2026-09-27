@@ -68,4 +68,22 @@ describe("assertions", () => {
     expect(fail.passed).toBe(false);
     expect(fail.failures[0]?.rule).toBe("outputContains");
   });
+
+  it("fails requiredSteps when a name is missing", () => {
+    const result = evaluateAssertions(sampleTrace(), "x", {
+      requiredSteps: ["answer", "missing-node"],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.failures[0]?.rule).toBe("requiredSteps");
+    expect(result.failures[0]?.actual).toContain("missing-node");
+  });
+
+  it("fails maxStepDurationMs when a named step is too slow", () => {
+    const result = evaluateAssertions(sampleTrace(), "x", {
+      maxStepDurationMs: [{ name: "answer", maxMs: 1 }],
+    });
+    expect(result.passed).toBe(false);
+    expect(result.failures[0]?.rule).toBe("maxStepDurationMs");
+    expect(result.failures[0]?.actual).toBe("5ms");
+  });
 });
