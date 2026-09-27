@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { Command } from "commander";
-import { compareTraces, formatOutputDiff, type MetricPresence } from "../diff/compare-traces.js";
+import { compareTraces, type MetricPresence } from "../diff/compare-traces.js";
+import { formatTraceDiff } from "../diff/format-diff.js";
 import { loadTrace } from "../persist/trace-store.js";
 
 function printMetric(
@@ -24,42 +25,39 @@ function printMetric(
   );
 }
 
+function colorStepLine(line: string): string {
+  if (line.startsWith("+ ")) return chalk.green(line);
+  if (line.startsWith("- ")) return chalk.red(line);
+  if (line.startsWith("~ ")) return chalk.yellow(line);
+  if (line.startsWith("… ")) return chalk.dim(line);
+  if (line.startsWith("(no ")) return chalk.dim(line);
+  return chalk.dim(line);
+}
+
 export function registerDiffCommand(program: Command): void {
   program
     .command("diff")
     .description("Compare two saved trace JSON files")
     .argument("<run1>", "Path to the baseline trace JSON")
     .argument("<run2>", "Path to the comparison trace JSON")
-    .action(async (run1: string, run2: string) => {
+    .option("--full", "Show all steps (including unchanged) without truncating changes", false)
+    .action(async (run1: string, run2: string, opts: { full?: boolean }) => {
       try {
         const left = await loadTrace(run1);
         const right = await loadTrace(run2);
         const result = compareTraces(left, right);
+        const formatted = formatTraceDiff(result, { full: opts.full === true });
 
         console.log(chalk.bold("Step changes"));
-        let shown = 0;
-        for (const step of result.steps) {
-          if (step.status === "unchanged") continue;
-          shown += 1;
-          if (step.status === "added") {
-            const ev = step.right!;
-            console.log(
-              chalk.green(`  + [${ev.type}] ${ev.name}  (step ${ev.step}, ${ev.durationMs}ms)`),
-            );
-          } else if (step.status === "removed") {
-            const ev = step.left!;
-            console.log(
-              chalk.red(`  - [${ev.type}] ${ev.name}  (step ${ev.step}, ${ev.durationMs}ms)`),
-            );
-          } else {
-            const ev = step.right ?? step.left!;
-            console.log(
-              chalk.yellow(`  ~ [${ev.type}] ${ev.name}  output changed (step ${ev.step})`),
-            );
-          }
+        for (const line of formatted.stepLines) {
+          console.log(`  ${colorStepLine(line)}`);
         }
-        if (shown === 0) {
-          console.log(chalk.dim("  (no step additions, removals, or output changes)"));
+        if (!opts.full && formatted.totalStepChanges > 0) {
+          console.log(
+            chalk.dim(
+              `  (${formatted.totalStepChanges} change${formatted.totalStepChanges === 1 ? "" : "s"}; unchanged omitted)`,
+            ),
+          );
         }
 
         console.log();
@@ -70,7 +68,7 @@ export function registerDiffCommand(program: Command): void {
 
         console.log();
         console.log(chalk.bold("Final output"));
-        for (const line of formatOutputDiff(result.finalOutput.left, result.finalOutput.right)) {
+        for (const line of formatted.outputLines) {
           if (line.startsWith("- ")) console.log(chalk.red(line));
           else if (line.startsWith("+ ")) console.log(chalk.green(line));
           else console.log(chalk.dim(line));

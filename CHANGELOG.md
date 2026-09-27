@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Richer `check` asserts: `requiredSteps`, `maxStepDurationMs`.
 - `retrieval` event type with offline multi-step demo (`examples/retrieval-demo.ts`).
 - CLI command `export` for redacted audit bundles (`trace.json`, `summary.txt`, optional `assertions.json`).
+- Compact `diff` output by default (deltas only, truncate after 50 changes, truncated final output) with `--full`.
 
 ## [0.1.0] - 2026-09-27
 
