@@ -3,7 +3,7 @@
 [![CI](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml/badge.svg)](https://github.com/Minacava/agentinsight/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/agentinsight.svg)](https://www.npmjs.com/package/agentinsight)
 
-CLI to inspect and debug agent runs from the terminal: nodes, tool calls, nesting, latency, and estimated cost — with traces saved as structured JSON.
+CLI to inspect and debug agent runs from the terminal: nodes, tool calls, nesting, latency, and (when the runtime provides them) tokens/cost — with traces saved as structured JSON.
 
 Works with:
 
@@ -116,11 +116,20 @@ Wraps `graph.streamEvents(..., { version: "v2" })`, maps `on_chain_*` / `on_tool
 
 ### Claude Agent SDK adapter
 
-Merges `PreToolUse` / `PostToolUse` / `PostToolUseFailure` hooks and observes the `query()` message stream (`assistant` / `user` / `result`) for turns, tokens, and `total_cost_usd`.
+Merges `PreToolUse` / `PostToolUse` / `PostToolUseFailure` hooks and observes the `query()` message stream (`assistant` / `user` / `result`) for turns, tokens, and `total_cost_usd` when the SDK reports them.
 
 ### Manual adapter
 
 Calls your `run(tracer)` function. Use `tracer.record` / `tracer.withSpan` to emit events for any stack.
+
+## Cost and tokens
+
+agentinsight **does not calculate prices**. It only displays tokens and cost fields that an adapter forwards from the underlying runtime:
+
+- If the adapter emits `tokens` / `costUsd` → they appear in the step line and in the summary.
+- If the runtime provides nothing → the CLI shows `-` / omits cost (it does not invent tariffs).
+- Values from a provider SDK (for example Claude Agent SDK `total_cost_usd`) are **runtime estimates**, not billing statements.
+- Offline demos may include fixture cost figures for illustration only.
 
 ## Adapter roadmap
 
@@ -139,13 +148,6 @@ Next (in order):
 5. Additional frameworks as usage demands
 
 Custom adapters only need to implement `AgentAdapter` and emit `TraceEvent`s.
-
-## Security
-
-- Do not commit `.env`, credentials, or `.agentinsight/` traces.
-- Trace writes redact common secret keys and token patterns.
-- See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
-- CI runs `npm audit` on every PR.
 
 ## Library API
 
