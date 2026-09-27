@@ -57,16 +57,21 @@ agentinsight run ./examples/claude-demo.ts
 
 ## Commands
 
-| Command                         | Description                                                |
-| ------------------------------- | ---------------------------------------------------------- |
-| `agentinsight run <entrypoint>` | Execute an instrumented agent; print live trace; save JSON |
-| `agentinsight replay <file>`    | Replay a saved trace (optional `--step`)                   |
-| `agentinsight list`             | Table of traces in `.agentinsight/`                        |
+| Command                                     | Description                                                |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| `agentinsight run <entrypoint>`             | Execute an instrumented agent; print live trace; save JSON |
+| `agentinsight replay <file>`                | Replay a saved trace (optional `--step`)                   |
+| `agentinsight list`                         | Table of traces in `.agentinsight/`                        |
+| `agentinsight diff <run1.json> <run2.json>` | Compare two saved traces (added/removed/changed steps)     |
 
 `run` flags:
 
 - `--type langgraph|claude|claude-agent-sdk|manual` — force adapter
 - `--no-persist` — skip writing `.agentinsight/`
+
+```bash
+agentinsight diff tests/fixtures/diff/base.json tests/fixtures/diff/changed.json
+```
 
 ## Entrypoint contract
 

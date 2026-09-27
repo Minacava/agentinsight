@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "runtime": "manual",
+  "entrypoint": "./examples/fixture-changed.ts",
+  "startedAt": "2026-09-27T18:01:00.000Z",
+  "endedAt": "2026-09-27T18:01:00.180Z",
+  "events": [
+    {
+      "id": "e1",
+      "step": 1,
+      "type": "node",
+      "name": "plan",
+      "timestamp": "2026-09-27T18:01:00.000Z",
+      "durationMs": 12,
+      "depth": 0,
+      "output": { "topic": "refunds" }
+    },
+    {
+      "id": "e2",
+      "step": 2,
+      "type": "tool",
+      "name": "lookup",
+      "timestamp": "2026-09-27T18:01:00.020Z",
+      "durationMs": 30,
+      "depth": 1,
+      "output": "policy notes"
+    },
+    {
+      "id": "e3",
+      "step": 3,
+      "type": "node",
+      "name": "answer",
+      "timestamp": "2026-09-27T18:01:00.100Z",
+      "durationMs": 50,
+      "depth": 0,
+      "output": { "finalAnswer": "EU refunds take 14 days." }
+    }
+  ],
+  "summary": {
+    "steps": 3,
+    "durationMs": 180
+  }
+}
