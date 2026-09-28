@@ -63,3 +63,7 @@ docs/
 tmp/
 temp/
 .cache/
+
+# Local release notes (not part of the public product)
+CHANGELOG.md
+changelog.md
